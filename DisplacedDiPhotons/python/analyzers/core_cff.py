@@ -6,6 +6,7 @@ import os
 
 from CMGTools.VVResonances.analyzers.Skimmer  import *
 from CMGTools.DisplacedDiPhotons.analyzers.VHGGBuilder  import *
+from CMGTools.RootTools.samples.triggers_13TeV_DATA2018 import *
 
 # Pick individual events (normally not in the path)
 eventSelector = cfg.Analyzer(
@@ -37,6 +38,13 @@ triggerFlagsAna = cfg.Analyzer(
     fallbackProcessName = 'HLT2',
     unrollbits = True,
     triggerBits = {
+    "ISOMU":triggers_1mu_iso,
+    "MU":triggers_1mu_noniso,
+    "ISOMUMU":triggers_mumu_iso,
+    "MUMU":triggers_1mu_noniso,
+    "ELE":triggers_1e_noniso,
+    "ISOELE":triggers_1e_iso,
+    "EE": triggers_ee
     }
     )
 

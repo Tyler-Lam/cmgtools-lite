@@ -83,12 +83,8 @@ from PhysicsTools.HeppyCore.framework.heppy_loop import getHeppyOption
 from CMGTools.DisplacedDiPhotons.analyzers.core_cff import *
 
 
-#-------- SAMPLES AND TRIGGERS -----------
-from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
 
 
-selectedComponents = mcSamples
-#selectedComponents = dataSamples
 
 
 
@@ -102,42 +98,39 @@ from CMGTools.DisplacedDiPhotons.analyzers.tree_cff import *
 sequence = cfg.Sequence(coreSequence+[vhGGTreeProducer])
 
 
-triggerFlagsAna.triggerBits ={
-    "ISOMU":triggers_1mu_iso,
-    "MU":triggers_1mu_noniso,
-    "ISOMUMU":triggers_mumu_iso,
-    "MUMU":triggers_1mu_noniso,
-    "ELE":triggers_1e_noniso,
-    "ISOELE":triggers_1e_iso,
-    "EE": triggers_ee
-}
-
 
 #-------- HOW TO RUN
-test = 1
-if test==1:
-    # test a single component, using a single thread.
-    selectedComponents = [selectedComponents[0]]
-    for c in selectedComponents:
-        c.files = c.files[:1]
-        c.splitFactor = 1
+#runCommand values
+#-1 -> CRAB
+# 0 -> Condor LPC
+# 1 ->test
 
-elif test==2:
-    # test a single component, using a single thread.
-    selectedComponents = [TTJets]
-elif test==3:
-    selectedComponents = [selectedComponents[0]]
-    for c in selectedComponents:
-        c.files = c.files[:1]
-        c.splitFactor = 1
+runCommand = -1
+
+if runCommand<0:
+    import pickle
+    f=open("component.pck")
+    component=pickle.load(f)
+    f.close()
+    selectedComponents = [component]
+    selectedComponents[0].name="Output"
 else:
-    # full scale production
-    # split samples in a smarter way
-    from CMGTools.RootTools.samples.configTools import configureSplittingFromTime, printSummary
-    #configureSplittingFromTime(selectedComponents, 20, 6)  # means 70 ms per event, job to last 12h #DATA
-    configureSplittingFromTime(selectedComponents, 60, 6)  # means 70 ms per event, job to last 12h #MC
-    # print summary of components to process
-    printSummary(selectedComponents)
+    from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
+    ####
+    #selectedComponents = mcSamples
+    selectedComponents = dataSamples
+    ####
+    if runCommand==1:
+        selectedComponents = [selectedComponents[0]]
+        for c in selectedComponents:
+            c.files = c.files[:1]
+            c.splitFactor = 1
+    else:    # full scale production
+        # split samples in a smarter way
+        from CMGTools.RootTools.samples.configTools import configureSplittingFromTime, printSummary
+        configureSplittingFromTime(selectedComponents, 60, 1)  # means 70 ms per event, job to last 12h
+        # prnt summary of components to process
+        printSummary(selectedComponents)
 
 selectedComponents=runOnFNAL(selectedComponents,"$CMSSW_BASE/src/CMGTools/DisplacedDiPhotons/data/JSON2018.txt")
 config=autoConfig(selectedComponents,sequence)
