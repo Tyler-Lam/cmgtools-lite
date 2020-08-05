@@ -70,7 +70,11 @@ class xVertex(object):
         yp = y3+math.sqrt(r**2-(q/2)**2)*(x2-x1)/q
         xm = x3-math.sqrt(r**2-(q/2)**2)*(y1-y2)/q
         ym = y3-math.sqrt(r**2-(q/2)**2)*(x2-x1)/q
-        return [[xp,yp],[xm,ym]]
+        centers = [[xp,yp],[xm,ym]]
+        if phi <= math.pi/2:
+            return min(centers, key = lambda x: x[0]**2+x[1]**2)
+        else:
+            return max(centers, key = lambda x: x[0]**2+x[1]**2)
 
     # Return pt of two points
     def getPt(self, x,y,x1,x2,y1,y2):
@@ -113,11 +117,10 @@ class xVertex(object):
         v1.Rotate(theta, axis)
         v2.Rotate(theta, axis)
         radius = self.getRadius(v1[0], v2[0], v1[1], v2[1], phi)
-        centers = self.getCenters(v1[0], v2[0], v1[1], v2[1], phi)
+        c = self.getCenters(v1[0], v2[0], v1[1], v2[1], phi)
         stepsPhi = 200
         deltaPhi = 2*math.pi/stepsPhi
         points = []
-        c = min(centers, key = lambda x: x[0]**2+x[1]**2)
         for i in range(stepsPhi):
             angle = i*deltaPhi
             x = c[0]+radius*math.cos(angle)
