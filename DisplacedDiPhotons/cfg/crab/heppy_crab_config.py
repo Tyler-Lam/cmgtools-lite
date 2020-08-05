@@ -10,8 +10,8 @@ import commands
 
 
 from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
-#selectedComponents = dataSamples
-selectedComponents = mcSamples
+selectedComponents = dataSamples
+selectedComponents = [EGamma_Run2018D_PromptReco_v2,SingleMuon_Run2018D_PromptReco_v2,DoubleMuon_Run2018D_PromptReco_v2]
 
 parser = optparse.OptionParser()
 parser.add_option("-p","--production",dest="prod",default='DDP',help="Name Of Production")
@@ -45,7 +45,7 @@ for component in selectedComponents:
     if component.isMC:
         configu.Data.unitsPerJob = 3
     if component.isData:
-        configu.Data.unitsPerJob = 6
+        configu.Data.unitsPerJob = 5
     configu.Data.outLFNDirBase = '/store/user/'+options.username+'/'+options.prod
     configu.Data.publication = False
     configu.Data.ignoreLocality =True
@@ -101,15 +101,20 @@ for component in selectedComponents:
         #enumeration
         status,output = commands.getstatusoutput("eos root://cmseos.fnal.gov ls  "+directory)
         subdirs=output.split('\n')
+        premerged=[]
+
         for d in subdirs: 
             status,output = commands.getstatusoutput("xrdfs root://cmseos.fnal.gov ls -u "+directory+'/'+d)
-            rootFiles=rootFiles+list(filter(lambda x: x.find(".root")!=-1,output.split('\n')))
+            rootFiles=list(filter(lambda x: x.find(".root")!=-1,output.split('\n')))
             pckFiles=pckFiles+list(filter(lambda x: x.find(".pck")!=-1,output.split('\n')))
+            os.system("hadd merged_"+options.prod+'/'+component.name+'_'+d+'.root '+' '.join(rootFiles))
+            premerged.append("merged_"+options.prod+'/'+component.name+'_'+d+'.root')
+        
 
-
-        print(rootFiles)
         print(pckFiles)
-        os.system("hadd merged_"+options.prod+'/'+component.name+'.root '+' '.join(rootFiles))
+        print(premerged)
+        os.system("hadd merged_"+options.prod+'/'+component.name+'.root '+' '.join(premerged))
+        os.system("rm "+' '.join(premerged))
         os.system("mkdir tmp")
         for f in pckFiles:
             os.system("xrdcp "+f+" tmp/")
