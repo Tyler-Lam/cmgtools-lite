@@ -15,7 +15,8 @@ displacementType = NTupleObjectType("xVertex", baseObjectTypes = [], variables =
     NTupleVariable("x", lambda x: x.vertex[0], float),
     NTupleVariable("y", lambda x: x.vertex[1], float),
     NTupleVariable("z", lambda x: x.vertex[2], float),
-    NTupleVariable("d0", lambda x: math.sqrt(x.vertex[0]**2+x.vertex[1]**2+x.vertex[2]**2), float),
+    NTupleVariable("d0", lambda x: math.sqrt(x.vertex[0]**2+x.vertex[1]**2), float),
+    NTupleVariable("ip3d", lambda x: math.sqrt(x.vertex[0]**2+x.vertex[1]**2+x.vertex[2]**2), float),
     NTupleVariable("phi", lambda x: x.getPhi(), float),
     NTupleVariable("pt", lambda x: x.pt, float),
     NTupleVariable("valid", lambda x: x.valid, int),
@@ -27,7 +28,8 @@ loosePhotonType = NTupleObjectType("loosePhoton", baseObjectTypes=[fourVectorTyp
     NTupleVariable("z", lambda x: x.caloPosition.z(), float),
     NTupleVariable("energy", lambda x: x.energy(), float),
     NTupleVariable("mcMatch", lambda x: x.mcMatch if getattr(x, "mcMatch", None) else 0, int, mcOnly = True, help = "1 if matched to mc photon, 0 otherwise"),
-    NTupleVariable("mcMotherId", lambda x: x.mcMotherId if getattr(x, "mcMotherId", None) else 0, int, mcOnly = True, help = "pdgId of matched mc photon mother")
+    NTupleVariable("mcMotherId", lambda x: x.mcMotherId if getattr(x, "mcMotherId", None) else 0, int, mcOnly = True, help = "pdgId of matched mc photon mother"),
+    NTupleVariable("isReal", lambda x: x.isReal if getattr(x, "isReal", None) else 0, int)
 ])
 
 

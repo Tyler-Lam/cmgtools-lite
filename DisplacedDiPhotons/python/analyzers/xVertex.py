@@ -22,6 +22,9 @@ class xVertex(object):
 
     # Get axis of rotation for photon - xy plane rotation
     def getRotAxis(self):
+        if self.v1[2] == 0 and self.v2[2]==0:
+            return ROOT.TVector3(0,0,1.0)
+
         v1 = self.v1
         v3 = v1.Cross(self.v2)
         if v3.Mag() == 0:
@@ -42,6 +45,8 @@ class xVertex(object):
         return math.acos(1.0-m**2/(2*e1*e2))
 
     def checkValid3D(self):
+        if self.valid == 0:
+            return None
         x = (self.v1[0]+self.v2[0])/2.
         y = (self.v1[1]+self.v2[1])/2.
         z = (self.v1[2]+self.v2[2])/2.
@@ -103,7 +108,7 @@ class xVertex(object):
     def checkValid(self, vx, vy, x1, y1, x2, y2):
         x = (x1+x2)/2.
         y = (y1+y2)/2.
-        return (math.sqrt(x**2+y**2) - math.sqrt(vx**2+vy**2)>-5 and math.sqrt(x**2+y**2) - math.sqrt((vx-x)**2+(vy-y)**2))>-5
+        return math.sqrt(x**2+y**2) - math.sqrt(vx**2+vy**2)>0 and math.sqrt(x1**2+y1**2) - math.sqrt(vx**2+vy**2)>0 and math.sqrt(x2**2+y2**2) - math.sqrt(vx**2+vy**2)>0
 
     # Put everything together, set the vertex, pt, and valid
     def setVertex(self):
@@ -118,17 +123,20 @@ class xVertex(object):
         v2.Rotate(theta, axis)
         radius = self.getRadius(v1[0], v2[0], v1[1], v2[1], phi)
         c = self.getCenters(v1[0], v2[0], v1[1], v2[1], phi)
-        stepsPhi = 200
+        if (radius > math.sqrt(c[0]**2+c[1]**2)+5):
+            self.valid = 0
+            return None
+        stepsPhi = 500
         deltaPhi = 2*math.pi/stepsPhi
-        points = []
+        goodPoints = []
         for i in range(stepsPhi):
             angle = i*deltaPhi
             x = c[0]+radius*math.cos(angle)
             y = c[1]+radius*math.sin(angle)
-            if abs(self.getPhiFromPoints(x,y,v1[0],v2[0],v1[1],v2[1]) - phi) > 0.001:
+            if not self.checkValid(x,y,v1[0],v1[1],v2[0],v2[1]):
                 continue
-            points.append([x,y])
-        goodPoints = filter(lambda x: self.checkValid(x[0], x[1], v1[0], v1[1], v2[0], v2[1]), points)
+            goodPoints.append([x,y])
+
         if len(goodPoints) == 0:
             self.valid = 0
             return None

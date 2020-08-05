@@ -363,6 +363,7 @@ class VHGGBuilder(Analyzer):
             for l in goodLeptons:
                 if deltaR(l.eta(), l.phi(), x.eta(), x.phi()) < 0.3:
                     overlap = True
+                    break
             if not overlap:
                 goodPhotons.append(x)
 
@@ -375,7 +376,13 @@ class VHGGBuilder(Analyzer):
                     overlap = True
                     break
             if not overlap:
+                for gamma in goodPhotons:
+                    if deltaR(gamma.eta(), gamma.phi(), g.eta(), g.phi()) < 0.1:
+                        if gamma.relIso<0.1 and ((gamma.isEE() and gamma.userFloat("PhotonMVAEstimatorRun2Spring16NonTrigV1Values")>-.26) or (gamma.isEB() and gamma.userFloat("PhotonMVAEstimatorRun2Spring16NonTrigV1Values")>-0.02)):
+                            g.isReal = 1
+                            break
                 loosePhotons.append(g)
+
         if self.cfg_comp.isMC:
             for g in loosePhotons:
                 for gamma in genPhotons:
