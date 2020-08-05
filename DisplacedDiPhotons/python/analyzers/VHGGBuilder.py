@@ -332,7 +332,7 @@ class VHGGBuilder(Analyzer):
         self.readCollections(event.input)
 
         pfCands = self.handles['packed'].product()
-        pfPhotons = filter(lambda x: x.pdgId()==22 and x.pt() > 10, pfCands)
+        pfPhotons = filter(lambda x: x.pdgId()==22 and x.pt() > 10 and abs(x.eta()) < 2.5, pfCands)
         
         event.ZX=[]
         event.WX=[]
