@@ -10,8 +10,8 @@ import commands
 
 
 from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
-selectedComponents = dataSamples
-
+#selectedComponents = dataSamples
+selectedComponents = mcSamples
 
 parser = optparse.OptionParser()
 parser.add_option("-p","--production",dest="prod",default='DDP',help="Name Of Production")
