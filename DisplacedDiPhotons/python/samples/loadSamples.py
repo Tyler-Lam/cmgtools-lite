@@ -14,7 +14,7 @@ WHtoLNuGGdd0 = kreator.makeMyPrivateMCComponent("WHtoLNuGGdd0", "/WPlusH_HToSS_S
 WHtoLNuGGdd3000 = kreator.makeMyPrivateMCComponent("WHtoLNuGGdd3000", "/WPlusH_HToSS_SToddgg_MH125_MS15_CTAU3000/bachtis-STEP3_Wplus_S15_ctau3000-3ee3afd6b5a1410aea6d0b4d52723d06/USER", "PRIVATE", ".*root", "phys03")
 
 signalSamples = [WHtoLNuGGdd0, WHtoLNuGGdd3000]
-#mcSamples = [DYJetsToLL_M50_LO,WW,WZ,ZZ,WJetsToLNu_LO,TTLep_pow,TTSemi_pow,WGtoLNuG,WGG] + QCD_EMs + QCD_Mus
+mcSamples = [DYJetsToLL_M50_LO, DYJetsToLL_M50HT,WW,WZ,ZZ,WJetsToLNu_LO,WJetsToLNuHT,TTLep_pow,TTSemi_pow,WGtoLNuG,WGG] + QCD_EMs + QCD_Mus
 #mcSamples = [DYJetsToLL_M50_LO]  #For testing
 mcSamples = signalSamples
 
