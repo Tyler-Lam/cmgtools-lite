@@ -45,7 +45,7 @@ for component in selectedComponents:
     if component.isMC:
         configu.Data.unitsPerJob = 3
     if component.isData:
-        configu.Data.unitsPerJob = 5
+        configu.Data.unitsPerJob = 4
     configu.Data.outLFNDirBase = '/store/user/'+options.username+'/'+options.prod
     configu.Data.publication = False
     configu.Data.ignoreLocality =True
