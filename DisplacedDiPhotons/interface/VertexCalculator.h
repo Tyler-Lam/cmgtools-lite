@@ -1,10 +1,9 @@
 #ifndef CMGTools_DisplacedDiPhotons_VertexCalculator_h
 #define CMGTools_DisplacedDiPhotons_VertexCalculator_h
 
-#include "TMath.h"
+#include "math.h"
 #include "TVector3.h"
-#include <cmath>
-#include <map>
+#include "TMath.h"
 
 namespace cmg {
    
