@@ -105,7 +105,7 @@ sequence = cfg.Sequence(coreSequence+[vhGGTreeProducer])
 # 0 -> Condor LPC
 # 1 ->test
 
-runCommand = -1
+runCommand = 1
 
 if runCommand<0:
     import pickle
