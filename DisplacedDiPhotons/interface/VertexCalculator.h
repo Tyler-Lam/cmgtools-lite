@@ -11,11 +11,11 @@ namespace cmg {
   class VertexCalculator {
   private:
     TVector3 vertex_;
-    bool valid_;
     float pt_;
     float phi_;
     float d0_;
     float ip3d_;
+    bool valid_;
    
   public:
     VertexCalculator();
@@ -26,12 +26,14 @@ namespace cmg {
     void setPhi(double);
     void setD0(double);
     void setIp3d(double);
+    void setValid(bool);
 
     TVector3 vertex();
     float pt();
     float phi();
     float d0();
     float ip3d();
+    bool valid();
 
     // Return angle between photon plane and x-y plane
     float getRotAngle(const TVector3& v1, const TVector3& v2);
@@ -57,7 +59,7 @@ namespace cmg {
     bool checkValid2D(const TVector3& vertex, const TVector3& v1, const TVector3& v2);
 
     // Set the vertex, pt, and phi
-    bool run(const TVector3& v1, const TVector3& v2, const double e1, const double e2, const double mass);
+    void run(const TVector3& v1, const TVector3& v2, const double e1, const double e2, const double mass);
 
   };
 }

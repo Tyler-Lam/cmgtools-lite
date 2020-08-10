@@ -16,12 +16,13 @@ void VertexCalculator::setPt(double pt){pt_ = pt;}
 void VertexCalculator::setPhi(double phi){phi_ = phi;}
 void VertexCalculator::setD0(double d0){d0_ = d0;}
 void VertexCalculator::setIp3d(double ip3d){ip3d_ = ip3d;}
+void VertexCalculator::setValid(bool valid){valid_ = valid;}
 TVector3 VertexCalculator::vertex(){return vertex_;}    
 float VertexCalculator::pt(){return pt_;}
 float VertexCalculator::phi(){return phi_;}
 float VertexCalculator::d0(){return d0_;}
 float VertexCalculator::ip3d(){return ip3d_;}
-
+bool VertexCalculator::valid(){return valid_;}
 
 float VertexCalculator::getRotAngle(const TVector3& v1, const TVector3& v2){
   TVector3 v3 = v1.Cross(v2);
@@ -112,7 +113,7 @@ bool VertexCalculator::checkValid2D(const TVector3& vertex, const TVector3& v1, 
 }
 
     // Set the vertex, pt, and phi
-bool VertexCalculator::run(const TVector3& v1, const TVector3& v2, const double e1, const double e2, const double mass){
+void VertexCalculator::run(const TVector3& v1, const TVector3& v2, const double e1, const double e2, const double mass){
 
 
   double phi = TMath::Pi();
@@ -127,13 +128,13 @@ bool VertexCalculator::run(const TVector3& v1, const TVector3& v2, const double 
   setPt(pt);
   setD0(TMath::Sqrt(vertex[0]*vertex[0]+vertex[1]*vertex[1]));
   setIp3d(TMath::Sqrt(vertex[0]*vertex[0]+vertex[1]*vertex[1]+vertex[2]*vertex[2]));
-
+  setValid(false);
 
   TVector3 axis = getRotAxis(v1, v2);
   double theta = getRotAngle(v1, v2);
   phi = getPhi(mass, e1, e2);
   if (phi >= TMath::Pi()){
-    return false;
+    return;
   }
 
   TVector3 temp1 = v1;
@@ -144,7 +145,7 @@ bool VertexCalculator::run(const TVector3& v1, const TVector3& v2, const double 
   std::pair<double, double> center = getCenter(temp1, temp2, phi);
 
   if (radius >= TMath::Sqrt(center.first*center.first+center.second*center.second)+5){
-    return false;
+    return;
   }
 
   int stepsPhi = 200;
@@ -174,7 +175,8 @@ bool VertexCalculator::run(const TVector3& v1, const TVector3& v2, const double 
     setPhi(phi);
     setD0(TMath::Sqrt(vertex[0]*vertex[0]+vertex[1]*vertex[1]));
     setIp3d(TMath::Sqrt(vertex[0]*vertex[0]+vertex[1]*vertex[1]+vertex[2]*vertex[2]));
+    setValid(valid);
   }
-
-  return valid;
+  return;
 }
+
