@@ -15,9 +15,9 @@ displacementType = NTupleObjectType("xVertex", baseObjectTypes = [], variables =
     NTupleVariable("x", lambda x: x.vertex[0], float),
     NTupleVariable("y", lambda x: x.vertex[1], float),
     NTupleVariable("z", lambda x: x.vertex[2], float),
-    NTupleVariable("d0", lambda x: math.sqrt(x.vertex[0]**2+x.vertex[1]**2), float),
-    NTupleVariable("ip3d", lambda x: math.sqrt(x.vertex[0]**2+x.vertex[1]**2+x.vertex[2]**2), float),
-    NTupleVariable("phi", lambda x: x.getPhi(), float),
+    NTupleVariable("d0", lambda x: x.d0, float),
+    NTupleVariable("ip3d", lambda x: x.ip3d, float),
+    NTupleVariable("phi", lambda x: x.phi, float),
     NTupleVariable("pt", lambda x: x.pt, float),
     NTupleVariable("valid", lambda x: x.valid, int),
 ])
@@ -134,13 +134,13 @@ looseXType = NTupleObjectType("loosePhotonPair", baseObjectTypes=[fourVectorType
     NTupleVariable("deltaR",   lambda x : x.deltaR(), float),       
     NTupleSubObject("g1",  lambda x : x.leg1,loosePhotonType),
     NTupleSubObject("g2",  lambda x : x.leg2,loosePhotonType),
-    NTupleSubObject("vertex10", lambda x: x.vertex(10), displacementType),
-    NTupleSubObject("vertex15", lambda x: x.vertex(15), displacementType),
-    NTupleSubObject("vertex20", lambda x: x.vertex(20), displacementType),
-    NTupleSubObject("vertex30", lambda x: x.vertex(30), displacementType),
-    NTupleSubObject("vertex40", lambda x: x.vertex(40), displacementType),
-    NTupleSubObject("vertex50", lambda x: x.vertex(50), displacementType),
-    NTupleSubObject("vertex60", lambda x: x.vertex(60), displacementType),
+    NTupleSubObject("vertex10", lambda x: x.vertex10, displacementType),
+    NTupleSubObject("vertex15", lambda x: x.vertex15, displacementType),
+    NTupleSubObject("vertex20", lambda x: x.vertex20, displacementType),
+    NTupleSubObject("vertex30", lambda x: x.vertex30, displacementType),
+    NTupleSubObject("vertex40", lambda x: x.vertex40, displacementType),
+    NTupleSubObject("vertex50", lambda x: x.vertex50, displacementType),
+    NTupleSubObject("vertex60", lambda x: x.vertex60, displacementType),
 ])
 
 
