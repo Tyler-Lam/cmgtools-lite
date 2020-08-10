@@ -10,12 +10,13 @@ import commands
 
 
 from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
-selectedComponents = dataSamples
-
+#selectedComponents = dataSamples
+selectedComponents = mcSamples
 
 parser = optparse.OptionParser()
 parser.add_option("-p","--production",dest="prod",default='DDP',help="Name Of Production")
 parser.add_option("-u","--username",dest="username",default='bachtis',help="user name")
+parser.add_option("-d","--database", dest="database", default='global', help="DBS")
 (options,args) = parser.parse_args()
 
 
@@ -37,7 +38,9 @@ for component in selectedComponents:
     configu.JobType.psetName = 'heppy_crab_fake_pset.py'
     configu.JobType.maxMemoryMB = 2500
     configu.Data.inputDataset = component.dataset
-    configu.Data.inputDBS = 'global'
+    configu.Data.inputDBS = options.database
+    #configu.Data.inputDBS = 'global'
+    #configu.Data.inputDBS = 'phys03'
     configu.JobType.inputFiles = ['heppy_config.py','heppy_crab_script.py','component.pck']
     configu.JobType.outputFiles = ['tree.root','SkimReport.pck']
     configu.JobType.sendPythonFolder = True
@@ -147,3 +150,19 @@ for component in selectedComponents:
 
 if args[0]=='status':
     print statusVector
+    print('---------------------------------')
+    status = {}
+
+    nJobs = 0
+
+    for comp in statusVector:
+        for s in statusVector[comp]:
+            if s in status:
+                status[s] += statusVector[comp][s]
+            else:
+                status[s] = 1
+            nJobs += statusVector[comp][s]
+
+    print "Status for all jobs: {}".format(status)
+    print "Total jobs = {}".format(nJobs)
+
