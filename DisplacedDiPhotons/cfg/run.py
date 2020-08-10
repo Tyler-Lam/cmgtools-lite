@@ -117,8 +117,8 @@ if runCommand<0:
 else:
     from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
     ####
-    #selectedComponents = mcSamples
-    selectedComponents = dataSamples
+    selectedComponents = mcSamples
+    #selectedComponents = dataSamples
     ####
     if runCommand==1:
         selectedComponents = [selectedComponents[0]]
