@@ -42,7 +42,7 @@ for component in selectedComponents:
     #configu.Data.inputDBS = 'global'
     #configu.Data.inputDBS = 'phys03'
     configu.JobType.inputFiles = ['heppy_config.py','heppy_crab_script.py','component.pck']
-    configu.JobType.outputFiles = ['tree.root','SkimReport.pck']
+    configu.JobType.outputFiles = ['tree.root','fakerate.root','SkimReport.pck']
     configu.JobType.sendPythonFolder = True
     configu.Data.splitting = 'FileBased'
     if component.isMC:
