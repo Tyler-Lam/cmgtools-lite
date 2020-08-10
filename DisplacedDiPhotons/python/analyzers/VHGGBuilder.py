@@ -22,16 +22,14 @@ class VHGGBuilder(Analyzer):
 
     def __init__(self, cfg_ana, cfg_comp, looperName):
         super(VHGGBuilder, self).__init__(cfg_ana, cfg_comp, looperName)
-        self.f = ROOT.TFile("fakerate_{}.root".format(cfg_comp.name), "RECREATE")
+        self.f = ROOT.TFile("/".join([self.dirName, 'fakerate.root']), "RECREATE")
         self.numerator = ROOT.TH2D("num", "", 45, 10, 100, 100, -2.5, 2.5)
         self.denominator = ROOT.TH2D("denom", "", 45, 10, 100, 100, -2.5, 2.5)
 
     def write(self, setup):
         super(VHGGBuilder, self).write(setup)
-        self.f.cd()
-        self.numerator.Write()
-        self.denominator.Write()
-        self.f.Close()
+        self.f.Write()
+
 
     def declareHandles(self):
         super(VHGGBuilder, self).declareHandles()
@@ -388,11 +386,9 @@ class VHGGBuilder(Analyzer):
                     if deltaR(gamma.eta(), gamma.phi(), g.eta(), g.phi()) < 0.1:
                         if gamma.relIso<0.1 and ((gamma.isEE() and gamma.userFloat("PhotonMVAEstimatorRun2Spring16NonTrigV1Values")>-.26) or (gamma.isEB() and gamma.userFloat("PhotonMVAEstimatorRun2Spring16NonTrigV1Values")>-0.02)):
                             g.isReal = 1
-                            if self.cfg_comp.isData:
-                                self.numerator.Fill(g.pt(), g.eta())
+                            self.numerator.Fill(g.pt(), g.eta())
                             break
-                if self.cfg_comp.isData:
-                    self.denominator.Fill(g.pt(), g.eta())
+                self.denominator.Fill(g.pt(), g.eta())
                 loosePhotons.append(g)
 
         if self.cfg_comp.isMC:
