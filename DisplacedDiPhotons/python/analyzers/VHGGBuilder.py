@@ -22,7 +22,16 @@ class VHGGBuilder(Analyzer):
 
     def __init__(self, cfg_ana, cfg_comp, looperName):
         super(VHGGBuilder, self).__init__(cfg_ana, cfg_comp, looperName)
+        self.f = ROOT.TFile("fakerate_{}.root".format(cfg_comp.name), "RECREATE")
+        self.numerator = ROOT.TH2D("num", "", 45, 10, 100, 100, -2.5, 2.5)
+        self.denominator = ROOT.TH2D("denom", "", 45, 10, 100, 100, -2.5, 2.5)
 
+    def write(self, setup):
+        super(VHGGBuilder, self).write(setup)
+        self.f.cd()
+        self.numerator.Write()
+        self.denominator.Write()
+        self.f.Close()
 
     def declareHandles(self):
         super(VHGGBuilder, self).declareHandles()
@@ -42,7 +51,6 @@ class VHGGBuilder(Analyzer):
         for l1,l2 in itertools.combinations(leptons,2):
             if (l1.charge()+l2.charge())!=0:
                 continue
-            # Did this need to be added? Wasn't in and couldn't find any instances where it wasn't true
             if l1.pdgId()+l2.pdgId()!=0:
                 continue
             Z = Pair(l1,l2,23)
@@ -356,7 +364,7 @@ class VHGGBuilder(Analyzer):
         signal = filter(lambda x: abs(x.pdgId())==9000006, gen)
         signalPhotons = filter(lambda x: abs(x.mother().pdgId())==9000006, genPhotons)
         event.GenPhoton = genPhotons
-
+        
         goodPhotons = []
         for x in photons:
             overlap = False
@@ -380,7 +388,11 @@ class VHGGBuilder(Analyzer):
                     if deltaR(gamma.eta(), gamma.phi(), g.eta(), g.phi()) < 0.1:
                         if gamma.relIso<0.1 and ((gamma.isEE() and gamma.userFloat("PhotonMVAEstimatorRun2Spring16NonTrigV1Values")>-.26) or (gamma.isEB() and gamma.userFloat("PhotonMVAEstimatorRun2Spring16NonTrigV1Values")>-0.02)):
                             g.isReal = 1
+                            if self.cfg_comp.isData:
+                                self.numerator.Fill(g.pt(), g.eta())
                             break
+                if self.cfg_comp.isData:
+                    self.denominator.Fill(g.pt(), g.eta())
                 loosePhotons.append(g)
 
         if self.cfg_comp.isMC:
@@ -403,12 +415,15 @@ class VHGGBuilder(Analyzer):
         LooseXs = self.makeLooseX(loosePhotons)
         LooseXXs = self.makeLooseXPair(loosePhotons)
 
+        vertexCalculator = ROOT.cmg.VertexCalculator()
+        
         # Make ZX/ZXX Pairs first
         if len(Zs) > 0:
             bestZ = max(Zs, key = lambda x: x.leg1.pt() + x.leg2.pt())
 
             ZXs = self.makeZXs(bestZ, Xs)
             for zx in ZXs:
+
                 zx.otherLeptons = len(leptons) - 2
                 event.ZX.append(zx)
             
@@ -431,6 +446,13 @@ class VHGGBuilder(Analyzer):
             bestW = max(Ws, key = lambda x: x.leg1.pt())
             WXs = self.makeWXs(bestW, Xs)
             for wx in WXs:
+                v1 = ROOT.TVector3(wx.leg2.leg1.caloPosition().x(),wx.leg2.leg1.caloPosition().y(),wx.leg2.leg1.caloPosition().z())
+                v2 = ROOT.TVector3(wx.leg2.leg2.caloPosition().x(),wx.leg2.leg2.caloPosition().y(),wx.leg2.leg2.caloPosition().z())
+                e1 = wx.leg2.leg1.energy()
+                e2 = wx.leg2.leg2.energy()
+#                if (wx.leg2.vertex15.valid):
+#                    import pdb
+#                    pdb.set_trace()
                 wx.otherLeptons = len(leptons) - 1
                 wx.hasZee = (len(Zees) > 0)
                 event.WX.append(wx)
