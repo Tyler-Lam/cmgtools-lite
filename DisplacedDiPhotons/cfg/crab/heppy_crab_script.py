@@ -50,3 +50,4 @@ f1.write(fwkreport)
 #place the file in the main folder
 os.rename("Output/tree.root", "tree.root")
 os.rename("Output/SkimReport.pck", "SkimReport.pck")
+os.rename("Output/fakerate.root", "fakerate.root")

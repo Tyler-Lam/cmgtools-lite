@@ -22,13 +22,18 @@ class VHGGBuilder(Analyzer):
 
     def __init__(self, cfg_ana, cfg_comp, looperName):
         super(VHGGBuilder, self).__init__(cfg_ana, cfg_comp, looperName)
-        self.f = ROOT.TFile("/".join([self.dirName, 'fakerate.root']), "RECREATE")
+
+    def beginLoop(self, setup):
+        super(VHGGBuilder, self).beginLoop(setup)
+        isCompressed = self.cfg_ana.isCompressed if hasattr(self.cfg_ana, 'isCompressed') else 1
+        self.file = ROOT.TFile("/".join([self.dirName, 'fakerate.root']), "RECREATE", '', isCompressed)
+        self.file.cd()
         self.numerator = ROOT.TH2D("num", "", 45, 10, 100, 100, -2.5, 2.5)
         self.denominator = ROOT.TH2D("denom", "", 45, 10, 100, 100, -2.5, 2.5)
 
     def write(self, setup):
         super(VHGGBuilder, self).write(setup)
-        self.f.Write()
+        self.file.Write()
 
 
     def declareHandles(self):
