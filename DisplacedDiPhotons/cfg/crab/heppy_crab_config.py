@@ -10,8 +10,9 @@ import commands
 
 
 from CMGTools.DisplacedDiPhotons.samples.loadSamples import *
-selectedComponents = dataSamples
-selectedComponents = [EGamma_Run2018D_PromptReco_v2,SingleMuon_Run2018D_PromptReco_v2,DoubleMuon_Run2018D_PromptReco_v2]
+#selectedComponents = mcSamples
+#selectedComponents = dataSamples
+selectedComponents = [EGamma_Run2018A_17Sep2018, EGamma_Run2018B_17Sep2018, EGamma_Run2018C_17Sep2018,SingleMuon_Run2018A_17Sep2018,SingleMuon_Run2018B_17Sep2018,SingleMuon_Run2018C_17Sep2018,DoubleMuon_Run2018A_17Sep2018,DoubleMuon_Run2018B_17Sep2018,DoubleMuon_Run2018C_17Sep2018]
 
 parser = optparse.OptionParser()
 parser.add_option("-p","--production",dest="prod",default='DDP',help="Name Of Production")
@@ -20,13 +21,16 @@ parser.add_option("-d","--database", dest="database", default='global', help="DB
 (options,args) = parser.parse_args()
 
 
-
 statusVector={}
+
+comps = []
 
 if args[0]=="merge":
     os.system("mkdir merged_"+options.prod)
             
 for component in selectedComponents:
+    comps.append("merged_"+options.prod+"/"+component.name + "_fakerate.root")
+
     print("Processing Component",component.name)
     configu = config()
     configu.General.requestName = component.name
@@ -104,20 +108,58 @@ for component in selectedComponents:
         #enumeration
         status,output = commands.getstatusoutput("eos root://cmseos.fnal.gov ls  "+directory)
         subdirs=output.split('\n')
-        premerged=[]
+        premerged={}
+        premerged['tree'] = []
+        premerged['fakerate'] = []
+        if not os.path.isdir("/uscmst1b_scratch/lpc1/3DayLifetime/"+options.username+"/merged_"+options.prod):
+            os.system("mkdir /uscmst1b_scratch/lpc1/3DayLifetime/"+options.username+"/merged_"+options.prod)
 
+        '''
         for d in subdirs: 
             status,output = commands.getstatusoutput("xrdfs root://cmseos.fnal.gov ls -u "+directory+'/'+d)
-            rootFiles=list(filter(lambda x: x.find(".root")!=-1,output.split('\n')))
+            rootFiles=list(filter(lambda x: x.find("tree")!=-1,output.split('\n')))
             pckFiles=pckFiles+list(filter(lambda x: x.find(".pck")!=-1,output.split('\n')))
             os.system("hadd merged_"+options.prod+'/'+component.name+'_'+d+'.root '+' '.join(rootFiles))
-            premerged.append("merged_"+options.prod+'/'+component.name+'_'+d+'.root')
-        
+            premerged['tree'].append("merged_"+options.prod+'/'+component.name+'_'+d+'.root')
 
+            rateFiles=list(filter(lambda x: x.find("fakerate")!=-1,output.split('\n')))
+            os.system("hadd merged_"+options.prod+'/'+'fakerate_'+d+'.root '+' '.join(rateFiles))
+            premerged['fakerate'].append("merged_"+options.prod+'/'+'fakerate_'+d+'.root')
+        '''
+        for d in subdirs:
+            status,output = commands.getstatusoutput("xrdfs root://cmseos.fnal.gov ls -u "+directory+'/'+d)
+            rootFiles=list(filter(lambda x: x.find("tree")!=-1,output.split('\n')))
+            pckFiles=pckFiles+list(filter(lambda x: x.find(".pck")!=-1,output.split('\n')))
+            print(rootFiles)
+            os.system("mkdir tmp")
+            for f in rootFiles:
+                os.system("xrdcp "+f+" tmp/")
+            os.system("hadd /uscmst1b_scratch/lpc1/3DayLifetime/"+options.username+"/merged_"+options.prod+'/'+component.name+'_'+d+'.root  tmp/tree*')
+            os.system("rm -rf tmp")
+                #            os.system("hadd /uscmst1b_scratch/lpc1/3DayLifetime/"+options.username+"/merged_"+options.prod+'/'+component.name+'_'+d+'.root '+' '.join(rootFiles))                                                                                                               
+            premerged['tree'].append('/uscmst1b_scratch/lpc1/3DayLifetime/'+options.username+"/merged_"+options.prod+'/'+component.name+'_'+d+'.root')
+            
+            os.system("mkdir tmp")
+
+            rateFiles=list(filter(lambda x: x.find("fakerate")!=-1,output.split('\n')))
+            print(rateFiles)
+            for f in rateFiles:
+                os.system("xrdcp "+f+" tmp/")
+            os.system("hadd /uscmst1b_scratch/lpc1/3DayLifetime/"+options.username+"/merged_"+options.prod+'/'+'fakerate_'+d+'.root tmp/fakerate*')
+            premerged['fakerate'].append("/uscmst1b_scratch/lpc1/3DayLifetime/"+options.username+"/merged_"+options.prod+'/'+'fakerate_'+d+'.root')
+            os.system("rm -rf tmp")
+
+
+        print "PRINTOUT"
         print(pckFiles)
-        print(premerged)
-        os.system("hadd merged_"+options.prod+'/'+component.name+'.root '+' '.join(premerged))
-        os.system("rm "+' '.join(premerged))
+        print(premerged['tree'])
+        print(premerged['fakerate'])
+
+        os.system("hadd merged_"+options.prod+'/'+component.name+'.root '+' '.join(premerged['tree']))
+        os.system("rm "+' '.join(premerged['tree']))
+        os.system("hadd merged_"+options.prod+'/'+component.name+'_fakerate.root '+' '.join(premerged['fakerate']))
+        os.system("rm "+' '.join(premerged['fakerate']))
+
         os.system("mkdir tmp")
         for f in pckFiles:
             os.system("xrdcp "+f+" tmp/")
@@ -148,10 +190,8 @@ for component in selectedComponents:
         pickle.dump(output,f)
         f.close()
 
-        
-            
-        
-
+if args[0] == 'merge':
+    os.system("hadd merged_"+options.prod+'/fakerate.root '+' '.join(comps))
 
 if args[0]=='status':
     print statusVector
@@ -165,7 +205,7 @@ if args[0]=='status':
             if s in status:
                 status[s] += statusVector[comp][s]
             else:
-                status[s] = 1
+                status[s] = statusVector[comp][s]
             nJobs += statusVector[comp][s]
 
     print "Status for all jobs: {}".format(status)
