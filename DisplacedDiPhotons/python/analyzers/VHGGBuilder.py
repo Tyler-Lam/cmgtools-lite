@@ -31,10 +31,6 @@ class VHGGBuilder(Analyzer):
         self.numerator = ROOT.TH2D("num", "", 45, 10, 100, 100, -2.5, 2.5)
         self.denominator = ROOT.TH2D("denom", "", 45, 10, 100, 100, -2.5, 2.5)
 
-        #    def beginLoop(self, setup):
-        #        super(VHGGBuilder, self).beginLoop(setup)
-        #        self.file = 
-
     def write(self, setup):
         super(VHGGBuilder, self).write(setup)
         self.file.Write()
