@@ -41,11 +41,14 @@ class FakePlotter(TreePlotter):
         # Convert reco photons to loose photons
         var = var.replace("WX", "looseWX")
         var = var.replace("ZX", "looseZX")
+
         split = cuts.split("*")
         branches = self.tree.GetListOfBranches()
         branchNames = []
         for b in branches:
             branchNames.append(b.GetName())
+
+        #Check to remove cuts if not common
         for n,x in enumerate(split):
             for b in branchNames:
                 if "loose" in b:
@@ -57,6 +60,7 @@ class FakePlotter(TreePlotter):
                     if temp not in branchNames:
                         split[n] = "(1)"
                         break
+
         cuts = "*".join(split)
         cuts = cuts.replace("WX", "looseWX")
         cuts = cuts.replace("ZX", "looseZX")           
@@ -75,17 +79,11 @@ class FakePlotter(TreePlotter):
             if len(getattr(e, var))==0:
                 continue
             v = getattr(e, var)[0]
-            #Get fakerate stuff
+            #Get fakerate
             fr1 = fakerate.GetBinContent(fakerate.GetXaxis().FindBin(pt1.EvalInstance()), fakerate.GetYaxis().FindBin(eta1.EvalInstance()))
             fr2 = fakerate.GetBinContent(fakerate.GetXaxis().FindBin(pt2.EvalInstance()), fakerate.GetYaxis().FindBin(eta2.EvalInstance()))
+
             h.Fill(v, fr1*fr2*weights.EvalInstance())
-            '''
-            print "fr1={} fr2={} weights={}".format(fr1, fr2, weights.EvalInstance())
-            print "var = {}".format(var)
-            print "weights = {}".format(weights)
-            print "corrFactors={}".format("("+cuts+")*"+lumi+"*"+self.weight+"*("+corrString+")")
-            import pdb
-            pdb.set_trace()
-            '''
+
         return h
 
