@@ -18,52 +18,24 @@ def normalizeStack(stack):
     return newStack
 
 
-def convertToPoisson(h):
-    graph = ROOT.TGraphAsymmErrors()
-    q = (1-0.6827)/2.
-
-    for i in range(1,h.GetNbinsX()+1):
-        x=h.GetXaxis().GetBinCenter(i)
-        xLow =h.GetXaxis().GetBinLowEdge(i) 
-        xHigh =h.GetXaxis().GetBinUpEdge(i) 
-        y=h.GetBinContent(i)
-        yLow=0
-        yHigh=0
-        if y !=0.0:
-            yLow = y-ROOT.Math.chisquared_quantile_c(1-q,2*y)/2.
-            yHigh = ROOT.Math.chisquared_quantile_c(q,2*(y+1))/2.-y
-            graph.SetPoint(i-1,x,y)
-            graph.SetPointEYlow(i-1,yLow)
-            graph.SetPointEYhigh(i-1,yHigh)
-            graph.SetPointEXlow(i-1,0.0)
-            graph.SetPointEXhigh(i-1,0.0)
-
-
-    graph.SetMarkerStyle(20)
-    graph.SetLineWidth(2)
-    graph.SetMarkerSize(1.)
-    graph.SetMarkerColor(ROOT.kBlack)
-    
-
-    return graph    
-
-
 cuts = {}
+cuts['default'] = {} #Default Signal Region cuts
+
 # Cuts on isolation for the leptons/photons
 cuts['relIso'] = {}
 cuts['relIso']['W'] = "WX_W_l1_relIso03<.1&&WX_X_g1_relIso<.1&&WX_X_g2_relIso<.1"
 cuts['relIso']['Z'] = "ZX_Z_l1_relIso03<.1&&ZX_Z_l2_relIso03<.1&&ZX_X_g1_relIso<.1&&ZX_X_g2_relIso<.1"
+
 # Cuts on MVA
 cuts['mva'] = {}
-cuts['default'] = {}
 for v in ['W', 'Z']:
     temp = {}
     for n in [1,2]:
         tag = "{}X_X_g{}".format(v,n)
         temp[n] =  "({t}_isEE&&{t}_MVANonTrigV1Values>-0.26)||({t}_isEB&&{t}_MVANonTrigV1Values>-0.02)".format(t=tag)
-    cuts['mva'][v] = temp[1]+"&&"+temp[2]
+    cuts['mva'][v] = "("+temp[1]+")*("+temp[2]+")"
 
-# Cuts for FSR on Z->mumu and misID for W->e+nu
+# Cuts for FSR on Z->mu+mu and misID for W->e+nu
 cuts['fsr'] = {}
 cuts['fsr']['Z'] = {}
 cuts['fsr']['Z']['MU'] = "ZX_hasFSR==0"
@@ -77,7 +49,7 @@ cuts['HLT'] = {}
 cuts['HLT']['MU'] = "(HLT_ISOMU&&!HLT_ISOELE)"
 cuts['HLT']['ELE'] = "(HLT_ISOELE&&!HLT_ISOMU)"
 
-#Defining Signal region default cuts
+#Defining Signal region default cuts: iso, mva, fsr/misID
 for v in ['W', 'Z']:
     cuts['default'][v] = {}
     for l in ['ELE', 'MU']:
@@ -105,25 +77,9 @@ for v in ['Z', 'W']:
 
 date = "08_10_20"
 # Load MC Samples
-'''
-dyjSamples = ["DYJetsToLL_M50_HT100to200",
-              "DYJetsToLL_M50_HT200to400",
-              "DYJetsToLL_M50_HT400to600",
-              "DYJetsToLL_M50_HT600to800",
-              "DYJetsToLL_M50_HT800to1200",
-              "DYJetsToLL_M50_HT2500toInf"]
-wjSamples = ['WJetsToLNu_HT100to200',
-             'WJetsToLNu_HT200to400',
-             'WJetsToLNu_HT400to600',
-             'WJetsToLNu_HT600to800',
-             'WJetsToLNu_HT800to1200',
-             'WJetsToLNu_HT1200to2500',
-             'WJetsToLNu_HT2500toInf']
-'''
 dyjSamples = ['DYJetsToLL_M50_LO']
 wjSamples = ['WJetsToLNu_LO']
 wgSamples = ['WGG', 'WGToLNuG']
-#wgSamples = []
 vvSamples = ['WW', 
              'WZ',
              'ZZ']
@@ -148,26 +104,8 @@ qcdSamples = ['QCD_Mu15',
               'QCD_Pt600to800_Mu5',
               'QCD_Pt800to1000_Mu5',
               'QCD_Pt1000toInf_Mu5']
-
 ttSamples = ['TTLep_pow',
              'TTSemi_pow']
-#qcdSamples = ['QCD_Pt80to120',
-#              'QCD_Pt120to170',
-#              'QCD_Pt170to300',
-#              'QCD_Pt300to470',
-#              'QCD_Pt470to600',
-#              'QCD_Pt470to600_ext1',
-#              'QCD_Pt600to800',
-#              'QCD_Pt800to1000',
-#              'QCD_Pt1000to1400',
-#              'QCD_Pt1400to1800',
-#              'QCD_Pt1400to1800_ext1',
-#              'QCD_Pt1800to2400',
-#              'QCD_Pt1800to2400_ext1',
-#              'QCD_Pt2400to3200',
-#              'QCD_Pt2400to3200_ext1',
-#              'QCD_Pt3200toInf']
-
 
 dyjPlotters = []
 wjPlotters = []
@@ -191,6 +129,7 @@ doubleMuSamples=['DoubleMuon_Run2018A_17Sep2018',
                  'DoubleMuon_Run2018C_17Sep2018',
                  'DoubleMuon_Run2018D_PromptReco_v2']
 dataSamples = egammaSamples + singleMuSamples + doubleMuSamples
+
 egammaPlotters = []
 singleMuPlotters = []
 doubleMuPlotters = []
@@ -280,8 +219,8 @@ fakesEMU = MergedPlotter(fakePlotters)
 WHtoLNuGG = TreePlotter("/scratch2/Tyler/samples/DDP/SIGNAL_{}/WHtoLNuGGdd0.root".format(date), 'tree')
 WHtoLNuGG.setupFromFile("/scratch2/Tyler/samples/DDP/SIGNAL_{}/WHtoLNuGGdd0.pck".format(date))
 #WH Xsec * W->lep br * H->SS BR 
-#WHtoLNuGG.addCorrectionFactor('1.504*0.3*0.1', 'tree')
-WHtoLNuGG.addCorrectionFactor('1.504*0.3', 'tree')
+WHtoLNuGG.addCorrectionFactor('1.504*0.3*0.1', 'tree')
+#WHtoLNuGG.addCorrectionFactor('1.504*0.3', 'tree')
 WHtoLNuGG.setFillProperties(0, ROOT.kWhite)
 WHtoLNuGG.setLineProperties(1, ROOT.kRed, 3)
 
@@ -325,7 +264,7 @@ for l in ['MU', 'ELE']:
     wStack['canvas'].Write("WX_W_mt_{}_fakerate".format(l))
 
 
-#To test new MC: Plotting Z mass and W mt with default cuts
+#To test new MC:
 '''
 f = ROOT.TFile("plots_dxy.root", "RECREATE")
 masses = [10,20,30,40,50,60]
