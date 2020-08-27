@@ -18,7 +18,7 @@ class FakePlotter(TreePlotter):
         fakerate.Divide(self.denom)
         self.fakerate = fakerate
 
-    # NOTE: This only works if cuts use branches that exist for reco AND pf photons
+    # NOTE: This only works for plotting VX variables
     def drawTH1(self, var, cuts, lumi, bins, min, max, titlex = "", units = "", drawStyle="HIST"):
         print "Drawing fakerate for {}".format(self.name)
         h = ROOT.TH1D("tmpTH1", "", bins, min, max)
