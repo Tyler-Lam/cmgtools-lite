@@ -68,11 +68,13 @@ for v in ['Z', 'W']:
     cuts['isMCgamma'][v] = "abs({}X_X_g1_mcMatchId)==22&&abs({}X_X_g2_mcMatchId)==22".format(v,v)
     cuts['mcISR'][v] = {}
     cuts['mcFSR'][v] = {}
+    cuts['mcReal'][v] = {}
     for g in ['g1', 'g2']:
         cuts['pi0'][v][g] = "abs({}X_X_{}_mcMotherId)==111".format(v,g)    
         cuts['mcISR'][v][g] = "(abs({v}X_X_{g}_mcMatchId)==22&&abs({v}X_X_{g}_mcMotherId)<9)".format(v=v, g=g)
         cuts['mcFSR'][v][g] = "(abs({v}X_X_{g}_mcMatchId)==22&&(abs({v}X_X_{g}_mcMotherId)==11||abs({v}X_X_{g}_mcMotherId)==13))".format(v=v, g=g)
-    cuts['mcReal'][v] = "(("+cuts['mcISR'][v]['g1']+"||"+cuts['mcFSR'][v]['g1']+")&&("+cuts['mcISR'][v]['g2']+"||"+cuts['mcFSR'][v]['g2']+"))"
+        cuts['mcReal'][v][g] = "("+cuts['mcISR'][v][g]+"||"+cuts['mcFSR'][v][g]+")"
+
 
 
 date = "08_10_20"
@@ -106,6 +108,12 @@ qcdSamples = ['QCD_Mu15',
               'QCD_Pt1000toInf_Mu5']
 ttSamples = ['TTLep_pow',
              'TTSemi_pow']
+
+mcSamples = dyjSamples + wjSamples + wgSamples + vvSamples + qcdSamples + ttSamples
+twoFakesPlotter = {}
+oneFakePlotter = {}
+zeroFakesPlotter = {}
+
 
 dyjPlotters = []
 wjPlotters = []
@@ -199,6 +207,40 @@ for sample in ttSamples:
 TTs = MergedPlotter(ttPlotters)
 
 
+twoFakes = {}
+oneFake = {}
+zeroFakes = {}
+for v in ['W', 'Z']:
+    twoFakesPlotter[v] = []
+    oneFakePlotter[v] = []
+    zeroFakesPlotter[v] = []
+    for sample in mcSamples:
+
+        twoFakesPlotter[v].append(TreePlotter('/scratch2/Tyler/samples/DDP/MC_{}/{}.root'.format(date, sample), 'tree'))
+        twoFakesPlotter[v][-1].setupFromFile('/scratch2/Tyler/samples/DDP/MC_{}/{}.pck'.format(date, sample))
+        twoFakesPlotter[v][-1].addCorrectionFactor('xsec', 'tree')
+        twoFakesPlotter[v][-1].addCorrectionFactor('genWeight', 'tree')
+        twoFakesPlotter[v][-1].addCorrectionFactor('puWeight', 'tree')
+        twoFakesPlotter[v][-1].addCorrectionFactor("(!("+cuts['mcReal'][v]['g1']+"||"+cuts['mcReal'][v]['g2']+"))", '')
+
+        zeroFakesPlotter[v].append(TreePlotter('/scratch2/Tyler/samples/DDP/MC_{}/{}.root'.format(date, sample), 'tree'))
+        zeroFakesPlotter[v][-1].setupFromFile('/scratch2/Tyler/samples/DDP/MC_{}/{}.pck'.format(date, sample))
+        zeroFakesPlotter[v][-1].addCorrectionFactor('xsec', 'tree')
+        zeroFakesPlotter[v][-1].addCorrectionFactor('genWeight', 'tree')
+        zeroFakesPlotter[v][-1].addCorrectionFactor('puWeight', 'tree')
+        zeroFakesPlotter[v][-1].addCorrectionFactor("("+cuts['mcReal'][v]['g1']+"&&"+cuts['mcReal'][v]['g2']+")", '')
+
+        oneFakePlotter[v].append(TreePlotter('/scratch2/Tyler/samples/DDP/MC_{}/{}.root'.format(date, sample), 'tree'))
+        oneFakePlotter[v][-1].setupFromFile('/scratch2/Tyler/samples/DDP/MC_{}/{}.pck'.format(date, sample))
+        oneFakePlotter[v][-1].addCorrectionFactor('xsec', 'tree')
+        oneFakePlotter[v][-1].addCorrectionFactor('genWeight', 'tree')
+        oneFakePlotter[v][-1].addCorrectionFactor('puWeight', 'tree')
+        oneFakePlotter[v][-1].addCorrectionFactor("(("+cuts['mcReal'][v]['g1']+"&&!"+cuts['mcReal'][v]['g2']+")||("+cuts['mcReal'][v]['g2']+"&&!"+cuts['mcReal'][v]['g1']+"))", '')
+
+    twoFakes[v] = MergedPlotter(twoFakesPlotter[v])
+    oneFake[v] = MergedPlotter(oneFakePlotter[v])
+    zeroFakes[v] = MergedPlotter(zeroFakesPlotter[v])
+
 #DATA
 for sample in egammaSamples:
     egammaPlotters.append(TreePlotter('/scratch2/Tyler/samples/DDP/DATA_{}/{}.root'.format(date,sample),'tree'))
@@ -238,7 +280,7 @@ bkgStack.addPlotter(DYJets, "DYJets", "DY+Jets", "background")
 bkgStack.addPlotter(WJets, "WJets", "W+Jets", "background")
 bkgStack.addPlotter(VVs, "VV", "VV", "background")
 bkgStack.addPlotter(WGs, "WGs", "WG", "background")
-#bkgStack.addPlotter(QCDs, "QCD", "QCD", "background")
+bkgStack.addPlotter(QCDs, "QCD", "QCD", "background")
 bkgStack.addPlotter(TTs, "tt", "t#bar{t}", "background")
 #bkgStack.addPlotter(WHtoLNuGG, "WHToLNuGG", "Signal", "signal")
 
@@ -250,58 +292,34 @@ XStack.addPlotter(WGs, "WGs", "WG", "background")
 XStack.addPlotter(QCDs, "QCD", "QCD", "background")
 XStack.addPlotter(TTs, "tt", "t#bar{t}", "background")
 XStack.addPlotter(fakesEMU,"data_obs", "Data", "data")
+
+fakeBkgStack = {}
+for v in ['W', 'Z']:
+    twoFakes[v].setFillProperties(1001, ROOT.kAzure+5)
+    oneFake[v].setFillProperties(1001, ROOT.kAzure-9)
+    zeroFakes[v].setFillProperties(1001, ROOT.kGreen-5)
+    fakeBkgStack[v] = StackPlotter()
+    fakeBkgStack[v].addPlotter(twoFakes[v], "twoFakes", "V + 2 Fakes", "background")
+    fakeBkgStack[v].addPlotter(oneFake[v], "oneFake", "V + 1 Fake + 1 Real", "background")
+    fakeBkgStack[v].addPlotter(zeroFakes[v], "noFakes", "V + 2 Real", "background")
+    fakeBgkStack[v].addPlotter(fakesEMU, "fakesEMU", "V + 2 Fakes (fakerate)", "data")
 ###############################################################################################
 
 f = ROOT.TFile("fakerate_test.root", "RECREATE")
 
 for l in ['MU', 'ELE']:
-    zStack = XStack.drawStack("ZX_Z_mass", cuts['HLT'][l]+"*"+cuts['default']['Z'][l], "59740", 45, 50, 140)
-    zStack['canvas'].SaveAs("ZX_Z_mass_{}_fakerate.pdf".format(l))
-    zStack['canvas'].Write("ZX_Z_mass_{}_fakerate".format(l))
+    zStack = fakeBkgStack['Z'].drawStack("ZX_Z_mass", cuts['HLT'][l]+"*"+cuts['default']['Z'][l], "59740", 45, 50, 140)
+    zStack['canvas'].SaveAs("plots_08_10_20/ZX_Z_mass_{}_fakeBkg.pdf".format(l))
+    zStack['canvas'].Write("ZX_Z_mass_{}_fakeBkg".format(l))
 
-    wStack = XStack.drawStack("WX_W_mt", cuts['HLT'][l]+"*"+cuts['default']['W'][l], "59740", 20, 0, 200)
-    wStack['canvas'].SaveAs("WX_W_mt_{}_fakerate.pdf".format(l))
+    wStack = fakeBkgStack['W'].drawStack("WX_W_mt", cuts['HLT'][l]+"*"+cuts['default']['W'][l], "59740", 20, 0, 200)
+    wStack['canvas'].SaveAs("plots_08_10_20/WX_W_mt_{}_fakerate.pdf".format(l))
     wStack['canvas'].Write("WX_W_mt_{}_fakerate".format(l))
 
+    zStack = bkgStack.drawStack("ZX_Z_mass", cuts['HLT'][l]+"*"+cuts['default']['Z'][l], "59740", 45, 50, 140)
+    zStack['canvas'].SaveAs("plots_08_10_20/ZX_Z_mass_{}.pdf".format(l))
+    zStack['canvas'].Write("ZX_Z_mass_{}".format(l))
 
-#To test new MC:
-'''
-f = ROOT.TFile("plots_dxy.root", "RECREATE")
-masses = [10,20,30,40,50,60]
-for v in ['W', 'Z']:
-    for l in ['ELE', 'MU']:
-        for m in masses:
-            hData = WHtoLNuGG.drawTH1("{}X_X_vertex{}_d0".format(v,m), "HLT_ISO{}&&n{}XX<1&&{}X_X_vertex{}_valid&&".format(l,v,v,m)+cuts['relIso'][v]+"&&"+cuts['fsr'][v][l]+"&&!("+cuts['mva'][v]+")", "59740", 20, 0, 300)
-            hData.Write("data_{}_{}X_X_vertex{}_d0".format(l,v,m))
-            hData.SetLineColor(ROOT.kBlack)
-            if hData.Integral() > 0:
-                hData.Scale(1.0/hData.Integral())
-            temp = bkgStack.drawStack("{}X_X_vertex{}_d0".format(v,m), "HLT_ISO{}&&n{}XX<1&&{}X_X_vertex{}_valid&&".format(l,v,v,m)+cuts['relIso'][v]+"&&"+cuts['fsr'][v][l]+"&&!("+cuts['mva'][v]+")", "59740", 20, 0, 300)
-            temp['stack'].Write("mcInverted_{}_{}X_X_vertex{}_d0".format(l,v,m))
-            hMC = normalizeStack(temp['stack'])
-            c = ROOT.TCanvas("c", "")
-            hData.Draw("P")
-            hMC.Draw("HIST,same")
-            temp['legend'].AddEntry(hData, "Data", "p")
-            temp['legend'].Draw("same")
-            c.SaveAs("{}X_{}_vertex{}_relIso_invertedMVA_misID.png".format(v,l,m))
-
-            temp = bkgStack.drawStack("{}X_X_vertex{}_d0".format(v,m), "HLT_ISO{}&&n{}XX<1&&{}X_X_vertex{}_valid&&".format(l,v,v,m)+cuts['default'][v][l], "59740", 20, 0, 300)
-            temp['stack'].Write("mc_{}_{}X_X_vertex{}_d0".format(l,v,m))
-            hMC = normalizeStack(temp['stack'])
-            c = ROOT.TCanvas("c", "")
-            hData.Draw("P")
-            hMC.Draw("HIST,same")
-            temp['legend'].AddEntry(hData, "Data", "p")
-            temp['legend'].Draw("same")
-            c.SaveAs("{}X_{}_vertex{}_relIso_MVA_misID.png".format(v,l,m))
-
-
-f = ROOT.TFile("plots_fakeRate.root", "RECREATE")
-
-for l in ['MU', 'ELE']:
-#    zstack = XStack.drawStack("ZX_Z_mass", "HLT_ISO{}&&".format(l)+cuts['default']['Z'][l], "59740", 45, 50, 140)
-#    zstack['canvas'].SaveAs("plots_07_27_20/ZX_Z_mass_{}_default.pdf".format(l))
-#    wstack = XStack.drawStack("WX_W_mt", "HLT_ISO{}&&".format(l)+cuts['default']['W'][l], "59740", 25, 0, 200)
-#    wstack['canvas'].SaveAs("plots_07_27_20/WX_W_mt_{}_default.pdf".format(l))
-'''        
+    wStack = bkgStack.drawStack("WX_W_mt", cuts['HLT'][l]+"*"+cuts['default']['W'][l], "59740", 20, 0, 200)
+    wStack['canvas'].SaveAs("plots_08_10_20/WX_W_mt_{}.pdf".format(l))
+    wStack['canvas'].Write("WX_W_mt_{}".format(l))
