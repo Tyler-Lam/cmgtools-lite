@@ -50,7 +50,7 @@ class StackPlotter(object):
         self.labels.append(label)
         self.names.append(name)
 
-    def drawStack(self,var,cut,lumi,bins,mini,maxi,titlex = "", units = "",expandY=0.0):
+    def drawStack(self,var,cut,lumi,bins,mini,maxi,titlex = "", units = "",expandY=0.0, nostack = False):
         canvas = ROOT.TCanvas("canvas","")
 #        ROOT.gStyle.SetOptStat(0)
 #        ROOT.gStyle.SetOptTitle(0)
@@ -83,6 +83,7 @@ class StackPlotter(object):
         error=ROOT.Double(0.0)
 
         cutL="("+self.defaultCut+")*("+cut+")"
+
 
         for (plotter,typeP,label,name) in zip(self.plotters,self.types,self.labels,self.names):
             if typeP == "signal" or typeP =="background":
@@ -148,7 +149,10 @@ class StackPlotter(object):
             frame.GetYaxis().SetTitle("Events")
 
         frame.Draw()
-        stack.Draw("A,HIST,SAME")
+        if nostack:
+            stack.Draw("A,HIST,SAME,NOSTACK")
+        else:
+            stack.Draw("A,HIST,SAME")
         if data !=None:
             dataG.Draw("Psame")              
 
@@ -229,7 +233,7 @@ class StackPlotter(object):
 
         for (plotter,typeP,label) in zip(self.plotters,self.types,self.labels):
                 hist = plotter.drawTH1(var,cut,"1",bins,mini,maxi,titlex,units)
-#                hist.SetFillStyle(0)
+                hist.SetFillStyle(0)
                 hist.SetName(hist.GetName()+label)
                 hist.Scale(1./hist.Integral())
                 stack.Add(hist)

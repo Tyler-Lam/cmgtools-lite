@@ -46,6 +46,7 @@ class TreePlotter(PlotterBase):
         corrString='1'
         for corr in self.corrFactors:
                 corrString = corrString+"*("+str(corr['value'])+")" 
+
         self.tree.Draw(var+">>tmpTH1","("+cuts+")*"+lumi+"*"+self.weight+"*("+corrString+")","goff")
 
         return h
