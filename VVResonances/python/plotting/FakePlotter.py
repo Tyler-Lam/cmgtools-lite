@@ -19,19 +19,17 @@ class FakePlotter(TreePlotter):
         fakerate.Divide(self.denom)
         self.fakerate = fakerate
 
-        # Separating g1 and g2 histograms
-        self.num_g1 = self.fakefile.Get("num_g1")
-        self.denom_g1 = self.fakefile.Get("denom_g1")
-        fakerate_g1 = self.num_g1.Clone("fakerate_g1")
-        fakerate_g1.Divide(self.denom_g1)
-        self.fakerate_g1 = fakerate_g1
-        
-        self.num_g2 = self.fakefile.Get("num_g2")
-        self.denom_g2 = self.fakefile.Get("denom_g2")
-        fakerate_g2 = self.num_g2.Clone("fakerate_g2")
-        fakerate_g2.Divide(self.denom_g2)
-        self.fakerate_g2 = fakerate_g2
+        self.num_ele = self.fakefile.Get("num_Z_e")
+        self.denom_ele = self.fakefile.Get("denom_Z_e")
+        fakerate_ele = self.num_ele.Clone("fakerate_ele")
+        fakerate_ele.Divide(self.denom_ele)
+        self.fakerate_ele = fakerate_ele
 
+        self.num_mu = self.fakefile.Get("num_Z_mu")
+        self.denom_mu = self.fakefile.Get("denom_Z_mu")
+        fakerate_mu = self.num_mu.Clone("fakerate_mu")
+        fakerate_mu.Divide(self.denom_mu)
+        self.fakerate_mu = fakerate_mu
 
 
     # NOTE: This only works for plotting VX variables
@@ -74,8 +72,8 @@ class FakePlotter(TreePlotter):
                 temp = temp.replace("ZX", "looseZX")
                 stripped = x
                 # Inelegant way to fix parenthesis for weird cases
-                # e.g. (cut1)*((cut2)*(cut3))
-                #      (1)*(1)*(cut3)) <- has extra ')'
+                # e.g. (cut1) * ((cut2) * (cut3))
+                #   -> (1) * (1) * (cut3)) <- has extra ')'
                 while stripped[0]=="(" and stripped[-1]==")":
                     stripped = stripped[1:-1]
                 if stripped[0] == "(" and stripped[-1]!=")":
@@ -97,9 +95,13 @@ class FakePlotter(TreePlotter):
         eta1 = ROOT.TTreeFormula("eta1", var[:7]+"_X_g1_eta", self.tree)
         eta2 = ROOT.TTreeFormula("eta2", var[:7]+"_X_g2_eta", self.tree)
         weights = ROOT.TTreeFormula("weights", "("+cuts+")*"+lumi+"*"+self.weight+"*("+corrString+")", self.tree)
-        fakerate = self.fakerate
-        fakerate_g1 = self.fakerate_g1
-        fakerate_g2 = self.fakerate_g2
+        if "ELE" in cuts:
+            fakerate = self.fakerate_ele
+        else:
+            fakerate = self.fakerate_mu
+#        fakerate = self.fakerate
+#        fakerate_g1 = self.fakerate_g1
+#        fakerate_g2 = self.fakerate_g2
         for e in self.tree:
             if len(getattr(e, var))==0:
                 continue
@@ -124,7 +126,7 @@ class FakePlotter(TreePlotter):
             #fr2 = fakerate_g2.GetBinContent(binPt2, binEta2)
             
 #            h.Fill(v, weights.EvalInstance())
-            h.Fill(v, (fr1+fr2-fr1*fr2)*weights.EvalInstance())
+            h.Fill(v, (fr1*fr2)*weights.EvalInstance())
 
         return h
 
