@@ -141,7 +141,7 @@ void VertexCalculator::run(const TVector3& v1, const TVector3& v2, const double 
   double radius = getRadius(temp1, temp2, phi);
   std::pair<double, double> center = getCenter(temp1, temp2, phi);
 
-  if (radius >= sqrt(center.first*center.first+center.second*center.second)+5){
+  if (radius >= sqrt(center.first*center.first+center.second*center.second)+10){
     return;
   }
 
